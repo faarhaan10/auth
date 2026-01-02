@@ -87,7 +87,7 @@ app.listen(PORT, () => {
   📡 Port: ${PORT}
   🌍 Environment: ${process.env.NODE_ENV || 'development'}
   📅 Started at: ${new Date().toISOString()}
-  🗃️  Database: SQLite (./data/auth.db)
+  🗃️ Database: SQLite (${dataDir}/auth.db)
   `);
 });
 

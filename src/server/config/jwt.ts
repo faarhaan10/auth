@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 import crypto from "crypto";
 
 // JWT Configuration
@@ -6,8 +6,10 @@ const JWT_SECRET =
   process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
 const JWT_REFRESH_SECRET =
   process.env.JWT_REFRESH_SECRET || "your-refresh-secret-change-in-production";
-const ACCESS_TOKEN_EXPIRES = process.env.JWT_ACCESS_EXPIRES_IN || "15m";
-const REFRESH_TOKEN_EXPIRES = process.env.JWT_REFRESH_EXPIRES_IN || "7d";
+const ACCESS_TOKEN_EXPIRES = (process.env.JWT_ACCESS_EXPIRES_IN ||
+  "15m") as SignOptions["expiresIn"];
+const REFRESH_TOKEN_EXPIRES = (process.env.JWT_REFRESH_EXPIRES_IN ||
+  "7d") as SignOptions["expiresIn"];
 
 export interface TokenPayload {
   userId: number;

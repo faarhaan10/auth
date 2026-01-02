@@ -13,10 +13,10 @@ export const updateProfileSchema = z.object({
 // Change password schema
 export const changePasswordSchema = z.object({
   currentPassword: z
-    .string({ required_error: "Current password is required" })
+    .string({ message: "Current password is required" })
     .min(1, "Current password is required"),
   newPassword: z
-    .string({ required_error: "New password is required" })
+    .string({ message: "New password is required" })
     .min(8, "Password must be at least 8 characters")
     .max(128, "Password must not exceed 128 characters")
     .regex(

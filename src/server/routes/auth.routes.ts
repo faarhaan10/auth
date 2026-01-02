@@ -118,14 +118,26 @@ router.post(
       // Store refresh token
       storeRefreshToken(user.id, refreshToken, expiresAt);
 
-      return res.status(200).json({
+
+      const isProd = process.env.NODE_ENV === "production";
+
+      // ✅ put refresh token in cookie
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: isProd, // true in prod (https)
+        sameSite: isProd ? "none" : "lax", // "none" if cross-site (different domain)
+        path: "/api/auth/refresh", // recommended: only send to refresh endpoint
+        maxAge: 7 * 24 * 60 * 60 * 1000, // match your refresh token TTL
+      });
+
+      return res.status(201).json({
         success: true,
-        message: "Login successful",
+        message: "User registered successfully",
         data: {
           user: toSafeUser(user),
+          refreshToken:'sent in cookie',
           tokens: {
-            accessToken,
-            refreshToken,
+            accessToken,  
           },
         },
       });
