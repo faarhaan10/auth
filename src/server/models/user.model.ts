@@ -64,6 +64,11 @@ export function findUserByEmail(email: string): User | undefined {
   return stmt.get(email) as User | undefined;
 }
 
+export function findAllUsers(): User[] {
+  const stmt = db.prepare("SELECT * FROM users");
+  return stmt.all() as User[];
+}
+
 /**
  * Find user by reset token
  */

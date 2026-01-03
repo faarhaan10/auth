@@ -3,6 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
+import cookieParser from "cookie-parser";
+
+
 
 // Load environment variables
 dotenv.config();
@@ -24,7 +27,7 @@ if (!fs.existsSync(dataDir)) {
 initializeDatabase();
 
 const app: Application = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5050;
 
 // ===================
 // Middleware
@@ -35,6 +38,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser()); 
 
 // Request logging middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {

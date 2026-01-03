@@ -1,7 +1,9 @@
 "use client";
 
 import Logo from "@/components/shared/Logo";
+import useAuth from "@/hooks/useAuth";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -43,6 +45,8 @@ export default function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const router = useRouter();
+  const {setToken} = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -81,17 +85,33 @@ export default function RegisterPage() {
 
     try {
       // TODO: Implement actual registration API call
-      console.log("Registration data:", {
+      const payload ={
         name: formData.name,
         email: formData.email,
         password: formData.password,
-      });
+      }
 
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch('http://localhost:5050/api/v1/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        credentials: 'include',
+      });
+      const data = await response.json(); 
+ 
 
+      if (!data?.success) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
+      }
+      console.log({data})
+      setToken(data?.data?.tokens?.accessToken);
       // On success, redirect to login or show success message
-      alert("Registration successful! Please login.");
+      router.push('/dashboard');
+
     } catch (error) {
       console.error("Registration error:", error);
     } finally {

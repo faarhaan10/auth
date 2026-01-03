@@ -12,6 +12,7 @@ import {
   updateUserPassword,
   deleteUser,
   toSafeUser,
+  findAllUsers,
 } from '../models/user.model';
 import { deleteAllUserRefreshTokens } from '../models/token.model';
 
@@ -164,6 +165,27 @@ router.delete('/account', async (req: AuthRequest, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to delete account',
+    });
+  }
+});
+
+
+router.get('/all', (_req: AuthRequest, res: Response) => {
+  
+  try {
+    const users = findAllUsers(); 
+    return res.status(200).json({
+      success: true,
+      message: 'Users fetched successfully',
+      data: {
+        users: users.map(toSafeUser),
+      },
+    });
+  } catch (error) {
+    console.error('Get all users error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch users',
     });
   }
 });

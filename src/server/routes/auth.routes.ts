@@ -20,7 +20,7 @@ import {
   generateResetToken,
   getResetTokenExpiry,
 } from "../config/jwt";
-import { validate } from "../middleware/validate.middleware";
+import { validate, validateRefreshToken } from "../middleware/validate.middleware";
 import {
   registerSchema,
   loginSchema,
@@ -30,6 +30,64 @@ import {
 } from "../validators/auth.validator";
 
 const router = Router();
+
+
+// POST /api/v1/auth/refresh
+router.post(
+  "/refresh",
+  validateRefreshToken(refreshTokenSchema),
+  async (req: Request, res: Response) => {
+    // get refreshToken from cookie
+    try {
+      const refreshToken = req.cookies?.refreshToken;
+      console.log('refreshtoken==================>',refreshToken)
+      if (!refreshToken) {
+        return res.status(401).json({ success: false, message: "Missing refresh token" });
+      }
+
+      // Find refresh token in database
+      const storedToken = findRefreshToken(refreshToken);
+      if (!storedToken) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid or expired refresh token",
+        });
+      }
+
+      // Verify refresh token
+      const decoded = verifyRefreshToken(refreshToken);
+      if (!decoded) {
+        deleteRefreshToken(refreshToken);
+        return res.status(401).json({
+          success: false,
+          message: "Invalid refresh token",
+        });
+      }
+
+      // Generate new access token
+      const accessToken = generateAccessToken({
+        userId: decoded.userId,
+        email: decoded.email,
+        role: decoded.role,
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "Token refreshed successfully",
+        data: {
+          accessToken,
+        },
+      });
+    } catch (error) {
+      console.error("Token refresh error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Token refresh failed",
+      });
+    }
+
+
+  })
 
 // POST /api/v1/auth/register
 router.post(
@@ -61,6 +119,17 @@ router.post(
       // Store refresh token
       storeRefreshToken(user.id, refreshToken, expiresAt);
 
+      const isProd = process.env.NODE_ENV === "production";
+
+      // ✅ put refresh token in cookie
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: isProd, // true in prod (https)
+        sameSite: isProd ? "none" : "lax", // "none" if cross-site (different domain)
+        path: "/api/v1/auth", // recommended: only send to refresh endpoint
+        maxAge: 7 * 24 * 60 * 60 * 1000, // match your refresh token TTL
+      });
+
       return res.status(201).json({
         success: true,
         message: "User registered successfully",
@@ -68,7 +137,7 @@ router.post(
           user: toSafeUser(user),
           tokens: {
             accessToken,
-            refreshToken,
+            // refreshToken,
           },
         },
       });
@@ -126,7 +195,7 @@ router.post(
         httpOnly: true,
         secure: isProd, // true in prod (https)
         sameSite: isProd ? "none" : "lax", // "none" if cross-site (different domain)
-        path: "/api/auth/refresh", // recommended: only send to refresh endpoint
+        path: "/api/v1/auth", // recommended: only send to refresh endpoint
         maxAge: 7 * 24 * 60 * 60 * 1000, // match your refresh token TTL
       });
 
@@ -135,9 +204,9 @@ router.post(
         message: "User registered successfully",
         data: {
           user: toSafeUser(user),
-          refreshToken:'sent in cookie',
           tokens: {
-            accessToken,  
+            accessToken,
+            // refreshToken
           },
         },
       });
@@ -154,7 +223,7 @@ router.post(
 // POST /api/v1/auth/logout
 router.post(
   "/logout",
-  validate(refreshTokenSchema),
+  validateRefreshToken(refreshTokenSchema),
   async (req: Request, res: Response) => {
     try {
       const { refreshToken } = req.body;
@@ -179,7 +248,7 @@ router.post(
 // POST /api/v1/auth/refresh
 router.post(
   "/refresh",
-  validate(refreshTokenSchema),
+  validateRefreshToken(refreshTokenSchema),
   async (req: Request, res: Response) => {
     try {
       const { refreshToken } = req.body;

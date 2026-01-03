@@ -1,6 +1,7 @@
 "use client";
 
 import Logo from "@/components/shared/Logo";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function LoginPage() {
@@ -60,13 +61,26 @@ export default function LoginPage() {
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={true}
-            className="w-full py-2.5 bg-rose-600 text-white font-medium rounded-md hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 transition-all"
-          >
-            Sign In
-          </button>
+          <div>
+            <button
+              type="submit"
+              disabled={true}
+              className="w-full py-2.5 bg-rose-600 text-white font-medium rounded-md hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 transition-all"
+            >
+              Sign In
+            </button>
+
+          </div>
+
+          <p className="mt-6 text-center text-sm text-gray-600">
+            New here?{" "}
+            <Link
+              href="/register"
+              className="text-rose-600 hover:text-rose-700 font-medium transition-colors"
+            >
+              Create an account
+            </Link>
+          </p>
         </form>
       </div>
     </div>
